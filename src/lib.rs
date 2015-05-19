@@ -1,7 +1,8 @@
 
 fn ramer_douglas_peucker(v: Vec<(f32,f32)>, e: f32) -> Vec<(f32,f32)> {
-  let mut stack = vec![(0, v.len() - 1)];
-  let mut included = vec![false; v.len()];
+  let length = v.len();
+  let mut stack = vec![(0, length - 1)];
+  let mut included = vec![false; length];
   let mut result: Vec<(f32,f32)> = Vec::new();
 
   while let Some((start_index, end_index)) =  stack.pop() {
@@ -25,7 +26,7 @@ fn ramer_douglas_peucker(v: Vec<(f32,f32)>, e: f32) -> Vec<(f32,f32)> {
       included[end_index] = true;
     }
   }
-  for i in 0..v.len() {
+  for i in 0..length {
     if included[i] {
       result.push(v[i]);
     }
@@ -71,6 +72,7 @@ fn reduce_vector() {
   assert_eq!(vec![(10.0, 30.0), (50.0, 10.0)], ramer_douglas_peucker(vec![(10.0, 30.0), (30.0, 30.0), (30.0, 10.0), (50.0, 10.0)], 15.0));
   // A more complex curve:
   assert_eq!(vec![(3.5, 21.25), (23.2, 3.1), (54.6, 18.15), (71.5, 9.7), (101.3, 21.1)], ramer_douglas_peucker(vec![(3.5, 21.25), (7.3, 12.0), (23.2, 3.1), (37.2, 12.07), (54.6, 18.15), (62.2, 16.45), (71.5, 9.7), (101.3, 21.1)], 5.0));
+  assert_eq!(vec![(0.0, 0.0), (0.5, 0.5), (1.25, -0.25), (1.5, 0.5)], ramer_douglas_peucker(vec![(0.0,0.0),(0.5,0.5),(1.0,0.0),(1.25,-0.25),(1.5,0.5)], 0.25));
   // Start point == end point
   assert_eq!(vec![(0.0, 0.0), (2.0, 0.0), (2.0, 2.0), (0.0, 2.0), (0.0, 0.0)],
     ramer_douglas_peucker(
