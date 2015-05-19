@@ -3,35 +3,35 @@
 type float = f32;
 fn ramer_douglas_peucker(v: Vec<(float, float)>, epsilon: float) -> Vec<(float, float)> {
     let length = v.len();
+    if length < 3 {
+        return v;
+    }
     let mut stack = vec![(0, length - 1)];
     let mut result = Vec::new();
-    let mut last_index = -1;
+    let mut last_stack_index = -1;
 
     while let Some((start_index, end_index)) =  stack.pop() {
         // println!("start = {}, end = {}", start_index, end_index);
         let mut max_distance = 0.0 as float;
-        let mut index = start_index;
+        let mut max_index = start_index;
         for i in start_index+1..end_index {
             let distance =
             distance_point_to_line(v[i], (v[start_index], v[end_index]));
             // println!("i = {}, distance = {}", i, distance);
             if distance > max_distance {
                 max_distance = distance;
-                index = i;
+                max_index = i;
             }
         }
         if max_distance > epsilon {
-            stack.push((index, end_index));
-            stack.push((start_index, index));
+            stack.push((max_index, end_index));
+            stack.push((start_index, max_index));
         } else {
-            if last_index != start_index {
+            if last_stack_index != start_index {
                 result.push(v[start_index]);
-                last_index = start_index;
             }
-            if last_index != end_index {
-                result.push(v[end_index]);
-                last_index = end_index;
-            }
+            result.push(v[end_index]);
+            last_stack_index = end_index;
         }
     }
     result
