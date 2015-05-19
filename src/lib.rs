@@ -1,95 +1,93 @@
+#![allow(dead_code)]
+#[allow(non_camel_case_types)]
+type float = f32;
+fn ramer_douglas_peucker(v: Vec<(float, float)>, epsilon: float) -> Vec<(float, float)> {
+    let length = v.len();
+    let mut stack = vec![(0, length - 1)];
+    let mut result = Vec::new();
+    let mut last_index = -1;
 
-fn ramer_douglas_peucker(v: Vec<(f32,f32)>, e: f32) -> Vec<(f32,f32)> {
-  let length = v.len();
-  let mut stack = vec![(0, length - 1)];
-  let mut included = vec![false; length];
-  let mut result: Vec<(f32,f32)> = Vec::new();
-
-  while let Some((start_index, end_index)) =  stack.pop() {
-    // println!("start = {}, end = {}", start_index, end_index);
-    let mut max_distance: f32 = 0.0;
-    let mut index = start_index;
-    for i in start_index+1..end_index {
-      let distance =
-        distance_point_to_line(v[i], (v[start_index], v[end_index]));
-      // println!("i = {}, distance = {}", i, distance);
-      if distance > max_distance {
-        max_distance = distance;
-        index = i;
-      }
+    while let Some((start_index, end_index)) =  stack.pop() {
+        // println!("start = {}, end = {}", start_index, end_index);
+        let mut max_distance = 0.0 as float;
+        let mut index = start_index;
+        for i in start_index+1..end_index {
+            let distance =
+            distance_point_to_line(v[i], (v[start_index], v[end_index]));
+            // println!("i = {}, distance = {}", i, distance);
+            if distance > max_distance {
+                max_distance = distance;
+                index = i;
+            }
+        }
+        if max_distance > epsilon {
+            stack.push((index, end_index));
+            stack.push((start_index, index));
+        } else {
+            if last_index != start_index {
+                result.push(v[start_index]);
+                last_index = start_index;
+            }
+            if last_index != end_index {
+                result.push(v[end_index]);
+                last_index = end_index;
+            }
+        }
     }
-    if max_distance > e {
-      stack.push((index, end_index));
-      stack.push((start_index, index));
-    } else {
-      included[start_index] = true;
-      included[end_index] = true;
-    }
-  }
-  for i in 0..length {
-    if included[i] {
-      result.push(v[i]);
-    }
-  }
-  result
+    result
 }
 
-fn distance_point_to_line(p: (f32, f32), l: ((f32, f32), (f32, f32))) -> f32 {
-  if l.0 == l.1 {
-    return distance_point_to_point(p, l.0);
-  }
-  let a = (l.0).1 - (l.1).1;
-  let b = (l.1).0 - (l.0).0;
-  let c = (l.0).0 * (l.1).1 - (l.1).0 * (l.0).1;
-  let result = (a * p.0 + b * p.1 + c) / (a * a + b * b).sqrt();
-  result.abs()
+fn distance_point_to_line(p: (float, float), l: ((float, float), (float, float))) -> float {
+    if l.0 == l.1 {
+        return distance_point_to_point(p, l.0);
+    }
+    let a = (l.0).1 - (l.1).1;
+    let b = (l.1).0 - (l.0).0;
+    let c = (l.0).0 * (l.1).1 - (l.1).0 * (l.0).1;
+    let result = (a * p.0 + b * p.1 + c) / (a * a + b * b).sqrt();
+    result.abs()
 }
 
-fn distance_point_to_point(x: (f32, f32), y: (f32, f32)) -> f32 {
-  let a = y.0 - x.0;
-  let b = y.1 - x.1;
-  let result = (a * a + b * b).sqrt();
-  result.abs()
+fn distance_point_to_point(x: (float, float), y: (float, float)) -> float {
+    let a = y.0 - x.0;
+    let b = y.1 - x.1;
+    let result = (a * a + b * b).sqrt();
+    result.abs()
 }
 
 #[test]
 fn reduce_vector() {
-  // Minimal cases:
-  assert_eq!(vec![(1.0, 1.0)], ramer_douglas_peucker(vec![(1.0, 1.0)], 0.5));
-  assert_eq!(vec![(1.0, 1.0), (2.0, 2.0)], ramer_douglas_peucker(vec![(1.0, 1.0), (2.0, 2.0)], 0.5));
-  assert_eq!(vec![(1.0, 1.0), (3.0, 3.0)], ramer_douglas_peucker(vec![(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)], 0.5));
-  // Effect of varying epsilon:
-  assert_eq!(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], ramer_douglas_peucker(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], 0.1));
-  assert_eq!(vec![(0.0, 2.0), (3.0, 0.0), (5.0, 1.0)], ramer_douglas_peucker(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], 0.5));
-  // Tests with vertical segments:
-  assert_eq!(vec![(10.0, 35.0), (20.0, 29.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], 10.0));
-  assert_eq!(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], 1.0));
-  // Tests with horizontal segments:
-  assert_eq!(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], 1.0));
-  assert_eq!(vec![(10.0, 35.0), (21.0, 30.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], 10.0));
-  // Tests with vertical and horizontal segments:
-  assert_eq!(vec![(10.0, 30.0), (50.0, 10.0)], ramer_douglas_peucker(vec![(10.0, 30.0), (30.0, 30.0), (30.0, 10.0), (50.0, 10.0)], 10.0));
-  assert_eq!(vec![(10.0, 30.0), (50.0, 10.0)], ramer_douglas_peucker(vec![(10.0, 30.0), (30.0, 30.0), (30.0, 10.0), (50.0, 10.0)], 15.0));
-  // A more complex curve:
-  assert_eq!(vec![(3.5, 21.25), (23.2, 3.1), (54.6, 18.15), (71.5, 9.7), (101.3, 21.1)], ramer_douglas_peucker(vec![(3.5, 21.25), (7.3, 12.0), (23.2, 3.1), (37.2, 12.07), (54.6, 18.15), (62.2, 16.45), (71.5, 9.7), (101.3, 21.1)], 5.0));
-  assert_eq!(vec![(0.0, 0.0), (0.5, 0.5), (1.25, -0.25), (1.5, 0.5)], ramer_douglas_peucker(vec![(0.0,0.0),(0.5,0.5),(1.0,0.0),(1.25,-0.25),(1.5,0.5)], 0.25));
-  // Start point == end point
-  assert_eq!(vec![(0.0, 0.0), (2.0, 0.0), (2.0, 2.0), (0.0, 2.0), (0.0, 0.0)],
-    ramer_douglas_peucker(
-      vec![(0.0,0.0),(1.0,0.0),(2.0,0.0),(2.0,1.0),(2.0,2.0),(1.0,2.0),(0.0,2.0),(0.0,1.0),(0.0, 0.0)],
-      1.0));
+    // Minimal cases:
+    assert_eq!(vec![(1.0, 1.0)], ramer_douglas_peucker(vec![(1.0, 1.0)], 0.5));
+    assert_eq!(vec![(1.0, 1.0), (2.0, 2.0)], ramer_douglas_peucker(vec![(1.0, 1.0), (2.0, 2.0)], 0.5));
+    assert_eq!(vec![(1.0, 1.0), (3.0, 3.0)], ramer_douglas_peucker(vec![(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)], 0.5));
+    // Effect of varying epsilon:
+    assert_eq!(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], ramer_douglas_peucker(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], 0.1));
+    assert_eq!(vec![(0.0, 2.0), (3.0, 0.0), (5.0, 1.0)], ramer_douglas_peucker(vec![(0.0, 2.0), (1.0, 1.0), (3.0, 0.0), (5.0, 1.0)], 0.5));
+    // Tests with vertical segments:
+    assert_eq!(vec![(10.0, 35.0), (20.0, 29.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], 10.0));
+    assert_eq!(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 34.0), (15.0, 30.0), (20.0, 29.0)], 1.0));
+    // Tests with horizontal segments:
+    assert_eq!(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], 1.0));
+    assert_eq!(vec![(10.0, 35.0), (21.0, 30.0)], ramer_douglas_peucker(vec![(10.0, 35.0), (15.0, 35.0), (16.0, 30.0), (21.0, 30.0)], 10.0));
+    // Tests with vertical and horizontal segments:
+    assert_eq!(vec![(10.0, 30.0), (50.0, 10.0)], ramer_douglas_peucker(vec![(10.0, 30.0), (30.0, 30.0), (30.0, 10.0), (50.0, 10.0)], 10.0));
+    assert_eq!(vec![(10.0, 30.0), (50.0, 10.0)], ramer_douglas_peucker(vec![(10.0, 30.0), (30.0, 30.0), (30.0, 10.0), (50.0, 10.0)], 15.0));
+    // A more complex curve:
+    assert_eq!(vec![(3.5, 21.25), (23.2, 3.1), (54.6, 18.15), (71.5, 9.7), (101.3, 21.1)], ramer_douglas_peucker(vec![(3.5, 21.25), (7.3, 12.0), (23.2, 3.1), (37.2, 12.07), (54.6, 18.15), (62.2, 16.45), (71.5, 9.7), (101.3, 21.1)], 5.0));
+    assert_eq!(vec![(0.0, 0.0), (0.5, 0.5), (1.25, -0.25), (1.5, 0.5)], ramer_douglas_peucker(vec![(0.0,0.0),(0.5,0.5),(1.0,0.0),(1.25,-0.25),(1.5,0.5)], 0.25));
+    // Start point == end point
+    assert_eq!(vec![(0.0, 0.0), (2.0, 0.0), (2.0, 2.0), (0.0, 2.0), (0.0, 0.0)],ramer_douglas_peucker(vec![(0.0,0.0),(1.0,0.0),(2.0,0.0),(2.0,1.0),(2.0,2.0),(1.0,2.0),(0.0,2.0),(0.0,1.0),(0.0, 0.0)], 1.0));
 }
 
 #[test]
 fn calculate_point_to_line_distance() {
-  assert!((distance_point_to_line((3.0, 2.0), ((-2.0, 0.0),(0.0, 2.0)))
-    - 2.12132).abs() < 0.00001);
-  assert!(distance_point_to_line((0.0, 0.0), ((-1.0, 0.0),(1.0, 0.0))).abs() < 0.00001);
+    assert!((distance_point_to_line((3.0, 2.0), ((-2.0, 0.0),(0.0, 2.0))) - 2.12132).abs() < 0.00001);
+    assert!(distance_point_to_line((0.0, 0.0), ((-1.0, 0.0),(1.0, 0.0))).abs() < 0.00001);
 }
 
 #[test]
 fn calculate_point_to_point_distance() {
-  assert!((distance_point_to_point((3.0, 2.0), (5.0, -1.0))
-    - 3.60555).abs() < 0.00001);
-  assert!(distance_point_to_point((3.0, 2.0), (3.0, 2.0)).abs() < 0.00001);
+    assert!((distance_point_to_point((3.0, 2.0), (5.0, -1.0)) - 3.60555).abs() < 0.00001);
+    assert!(distance_point_to_point((3.0, 2.0), (3.0, 2.0)).abs() < 0.00001);
 }
