@@ -8,6 +8,10 @@ pub trait HasPoint: Copy {
     fn to_point(self) -> Point;
 }
 
+impl HasPoint for Point {
+    fn to_point(self) -> Point {self}
+}
+
 pub fn ramer_douglas_peucker<T: HasPoint>(v: Vec<T>, epsilon: float) -> Vec<T> {
     let length = v.len();
     if length < 3 {
@@ -24,8 +28,7 @@ pub fn ramer_douglas_peucker<T: HasPoint>(v: Vec<T>, epsilon: float) -> Vec<T> {
         for i in start_index+1..end_index {
             let point = v[i].to_point();
             let line = (v[start_index].to_point(), v[end_index].to_point());
-            let distance =
-            distance_point_to_line(point, line);
+            let distance = distance_point_to_line(point, line);
             // println!("i = {}, distance = {}", i, distance);
             if distance > max_distance {
                 max_distance = distance;
@@ -67,10 +70,6 @@ pub fn distance_point_to_point(x: Point, y: Point) -> float {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    impl HasPoint for Point {
-        fn to_point(self) -> Point {self}
-    }
 
     impl HasPoint for (f32, f32, i32) {
         fn to_point(self) -> Point {(self.0, self.1)}
