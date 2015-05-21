@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 #[allow(non_camel_case_types)]
 type float = f32;
-fn ramer_douglas_peucker(v: Vec<(float, float)>, epsilon: float) -> Vec<(float, float)> {
+type Point = (float, float);
+type Line = (Point, Point);
+
+fn ramer_douglas_peucker(v: Vec<Point>, epsilon: float) -> Vec<Point> {
     let length = v.len();
     if length < 3 {
         return v;
@@ -37,7 +40,7 @@ fn ramer_douglas_peucker(v: Vec<(float, float)>, epsilon: float) -> Vec<(float, 
     result
 }
 
-fn distance_point_to_line(p: (float, float), l: ((float, float), (float, float))) -> float {
+fn distance_point_to_line(p: Point, l: Line) -> float {
     if l.0 == l.1 {
         return distance_point_to_point(p, l.0);
     }
@@ -48,7 +51,7 @@ fn distance_point_to_line(p: (float, float), l: ((float, float), (float, float))
     result.abs()
 }
 
-fn distance_point_to_point(x: (float, float), y: (float, float)) -> float {
+fn distance_point_to_point(x: Point, y: Point) -> float {
     let a = y.0 - x.0;
     let b = y.1 - x.1;
     let result = (a * a + b * b).sqrt();
