@@ -71,10 +71,6 @@ pub fn distance_point_to_point(x: Point, y: Point) -> float {
 mod tests {
     use super::*;
 
-    impl HasPoint for (f32, f32, i32) {
-        fn to_point(self) -> Point {(self.0, self.1)}
-    }
-
     #[test]
     fn reduce_vector() {
         // Minimal cases:
@@ -96,7 +92,6 @@ mod tests {
         // A more complex curve:
         assert_eq!(vec![(3.5, 21.25), (23.2, 3.1), (54.6, 18.15), (71.5, 9.7), (101.3, 21.1)], ramer_douglas_peucker(vec![(3.5, 21.25), (7.3, 12.0), (23.2, 3.1), (37.2, 12.07), (54.6, 18.15), (62.2, 16.45), (71.5, 9.7), (101.3, 21.1)], 5.0));
         assert_eq!(vec![(0.0, 0.0), (0.5, 0.5), (1.25, -0.25), (1.5, 0.5)], ramer_douglas_peucker(vec![(0.0,0.0),(0.5,0.5),(1.0,0.0),(1.25,-0.25),(1.5,0.5)], 0.25));
-        assert_eq!(vec![(1.0, 1.0, 1), (3.0, 3.0, 3)], ramer_douglas_peucker(vec![(1.0, 1.0, 1), (2.0, 2.0, 2), (3.0, 3.0, 3)], 0.5));
         // Start point == end point
         assert_eq!(vec![(0.0, 0.0), (2.0, 0.0), (2.0, 2.0), (0.0, 2.0), (0.0, 0.0)],ramer_douglas_peucker(vec![(0.0,0.0),(1.0,0.0),(2.0,0.0),(2.0,1.0),(2.0,2.0),(1.0,2.0),(0.0,2.0),(0.0,1.0),(0.0, 0.0)], 1.0));
     }
@@ -111,5 +106,15 @@ mod tests {
     fn calculate_point_to_point_distance() {
         assert!((distance_point_to_point((3.0, 2.0), (5.0, -1.0)) - 3.60555).abs() < 0.00001);
         assert!(distance_point_to_point((3.0, 2.0), (3.0, 2.0)).abs() < 0.00001);
+    }
+
+    // Reduce vector with extra data fieds
+    impl HasPoint for (f32, f32, i32) {
+        fn to_point(self) -> Point {(self.0, self.1)}
+    }
+
+    #[test]
+    fn extra_fields_vector_reduce() {
+        assert_eq!(vec![(1.0, 1.0, 1), (3.0, 3.0, 3)], ramer_douglas_peucker(vec![(1.0, 1.0, 1), (2.0, 2.0, 2), (3.0, 3.0, 3)], 0.5));
     }
 }
