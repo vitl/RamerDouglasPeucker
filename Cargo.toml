@@ -1,6 +1,6 @@
 [package]
 name = "ramer_douglas_peucker"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Vitaly Voronin <vitl17@gmail.com>"]
 
 [lib]
