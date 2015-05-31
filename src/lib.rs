@@ -1,5 +1,5 @@
 #[allow(non_camel_case_types)]
-pub type float = f32;
+pub type float = f64;
 
 pub type Point = (float, float);
 pub type Line = (Point, Point);
@@ -109,7 +109,7 @@ mod tests {
     }
 
     // Reduce vector with extra data fieds
-    impl HasPoint for (f32, f32, i32) {
+    impl HasPoint for (float, float, i32) {
         fn to_point(self) -> Point {(self.0, self.1)}
     }
 
